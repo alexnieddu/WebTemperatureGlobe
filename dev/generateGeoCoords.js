@@ -1,22 +1,25 @@
 const isSea = require('is-sea');
 const fs = require('fs');
-var longitude = 360;
-var latitude = 180;
-var data = "[";
+var data = "[[\"1990\",[";
+var lo = 180;
+var la = 90;
+var count = 0;
 
-for (var i = 0; i < longitude ; i++) {
-	for (var j = -90; j < latitude - 90; j++) {
-		if(!isSea(i,j)) {
-			console.log("long.: " + i + ", lat.: " + j);
-			data = data + i + "," + j + "," + "0.1, ";
+for (var longitude = (-la+1); longitude < la - 1 ; longitude = longitude + 1) {
+	for (var latitude = (-lo+1); latitude < lo - 1; latitude = latitude + 1) {
+		if(!isSea(longitude, latitude)) {
+			console.log("long.: " + longitude + ", lat.: " + latitude);
+			data = data + longitude + "," + latitude + "," + 0.3*Math.random() + ", ";
+			count++;
 		}
 	}
 }
-data = data + "]";
+data = data + "0,0,0 ]]]";
 console.log(data);
+console.log(count);
 
 
-fs.writeFile("./data1.txt", data, function(err) {
+fs.writeFile("./data1.json", data, function(err) {
     if(err) {
         return console.log(err);
     }
