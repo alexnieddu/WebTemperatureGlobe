@@ -116,34 +116,62 @@
 <script type="text/javascript" src="./globe.js"></script>
 <script type="text/javascript">
 
-  var globe = DAT.Globe(document.getElementById('container'), {
-    colorFn: function(label) {
-       return new THREE.Color([
-         0xd9d9d9, 0xb6b4b5, 0x9966cc, 0x15adff, 0x3e66a3,
-         0x216288, 0xff7e7e, 0xff1f13, 0xc0120b, 0x5a1301, 0xffcc02,
-         0xedb113, 0x9fce66, 0x0c9a39,
-         0xfe9872, 0x7f3f98, 0xf26522, 0x2bb673, 0xd7df23,
-         0xe6b23a, 0x7ed3f7][label]);
-    }
-  });
+    if(!Detector.webgl){
+      Detector.addGetWebGLMessage();
+    } else {
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', './dev/data1.json', true);
-  xhr.onreadystatechange = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        var data = JSON.parse(xhr.responseText);
-        window.data = data;
-        globe.addData(data, {format: 'legend'});
-        globe.createPoints();
-        globe.animate();
-        document.body.style.backgroundImage = 'none'; // remove loading
+      var years = ['1990','1995','2000'];
+      var container = document.getElementById('container');
+      var globe = new DAT.Globe(container);
+
+      console.log(globe);
+      var i, tweens = [];
+      
+      var settime = function(globe, t) {
+        return function() {
+          new TWEEN.Tween(globe).to({time: t/years.length},500).easing(TWEEN.Easing.Cubic.EaseOut).start();
+          var y = document.getElementById('year'+years[t]);
+          if (y.getAttribute('class') === 'year active') {
+            return;
+          }
+          var yy = document.getElementsByClassName('year');
+          for(i=0; i<yy.length; i++) {
+            yy[i].setAttribute('class','year');
+          }
+          y.setAttribute('class', 'year active');
+        };
+      };
+      
+      for(var i = 0; i<years.length; i++) {
+        var y = document.getElementById('year'+years[i]);
+        y.addEventListener('mouseover', settime(globe,i), false);
       }
+      
+      var xhr;
+      TWEEN.start();
+      
+      
+      xhr = new XMLHttpRequest();
+      xhr.open('GET', './data1.json', true);
+      xhr.onreadystatechange = function(e) {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            window.data = data;
+            for (i=0;i<data.length;i++) {
+              globe.addData(data[i][1], {format: 'magnitude', name: data[i][0], animated: true});
+            }
+            globe.createPoints();
+            settime(globe,0)();
+            globe.animate();
+            document.body.style.backgroundImage = 'none'; // remove loading
+          }
+        }
+      };
+      xhr.send(null);
     }
-  };
-  xhr.send(null);
 
-</script>
+  </script>
 
 
 </body>
